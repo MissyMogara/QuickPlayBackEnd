@@ -1,42 +1,69 @@
 package com.example.quickplay.services;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.stereotype.Service;
-
 import com.example.quickplay.models.Users;
 import com.example.quickplay.repositories.UserRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.stereotype.Service;
+import reactor.core.publisher.Mono;
 
 @Service
 public class UserService {
 
     @Autowired
+    private UserRepository userRepository;
+    
+    @Autowired
+    private MyReactiveUserDetailsService userDetailsService;
+    
+    @Autowired
+    private BCryptPasswordEncoder passwordEncoder;
+
+    @Autowired
     private JWTService jwtService;
-
-    @Autowired
-    AuthenticationManager authManager;
-
-    @Autowired
-    private UserRepository repository;
-
-
-    private BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(12);
-
-    public Users register(Users user) {
-        user.setPassword(encoder.encode(user.getPassword()));
-        repository.save(user);
-        return user;
+    
+    public Mono<Users> register(Users user) {
+        return Mono.just(user)
+            .flatMap(newUser -> {
+                // Validate user data
+                if (newUser.getUsername() == null || newUser.getPassword() == null) {
+                    return Mono.error(new IllegalArgumentException("Username and password are required"));
+                }
+                
+                // Check if username already exists
+                return userRepository.findByUsername(newUser.getUsername())
+                    .flatMap(existingUser -> Mono.error(new IllegalArgumentException("Username already exists")))
+                    .switchIfEmpty(Mono.defer(() -> {
+                        // Hash password before saving
+                        newUser.setPassword(passwordEncoder.encode(newUser.getPassword()));
+                        // Set default role if not provided
+                        if (newUser.getRole() == null) {
+                            newUser.setRole("USER");
+                        }
+                        return userRepository.save(newUser);
+                    }))
+                    .thenReturn(newUser);
+            });
     }
 
-    public String verify(Users user) {
-        Authentication authentication = authManager.authenticate(new UsernamePasswordAuthenticationToken(user.getUsername(), user.getPassword()));
-   if (authentication.isAuthenticated()) {
-         return jwtService.generateToken(user.getUsername())  ;
-        } else {
-            return "fail";
-        }
+    public Mono<String> verify(Users user) {
+        return userRepository.findByUsername(user.getUsername())
+            .flatMap(existingUser -> {
+                if (passwordEncoder.matches(user.getPassword(), existingUser.getPassword())) {
+                    return Mono.just("User verified successfully");
+                }
+                return Mono.error(new BadCredentialsException("Invalid credentials"));
+            })
+            .switchIfEmpty(Mono.error(new BadCredentialsException("User not found")));
     }
+    
+    public Mono<String> login(String username, String password) {
+        return userDetailsService.findByUsername(username)
+            .filter(userDetails -> passwordEncoder.matches(password, userDetails.getPassword()))
+            .switchIfEmpty(Mono.error(new BadCredentialsException("Invalid credentials")))
+            .flatMap(userDetails -> Mono.just(jwtService.generateToken(username)));
+    }
+
+    
 }

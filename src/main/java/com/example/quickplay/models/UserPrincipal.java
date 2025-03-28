@@ -5,10 +5,11 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Map;
 
 public class UserPrincipal implements UserDetails {
 
-    private Users user;
+    final private Users user;
 
     public UserPrincipal(Users user) {
         this.user = user;
@@ -47,5 +48,9 @@ public class UserPrincipal implements UserDetails {
     @Override
     public boolean isEnabled() {
         return true;
+    }
+
+    public Map<String, Object> getClaims() {
+        return Collections.singletonMap("username", getUsername());
     }
 }

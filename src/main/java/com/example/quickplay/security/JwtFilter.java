@@ -1,53 +1,61 @@
 package com.example.quickplay.security;
 
-import java.io.IOException;
+
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
-import org.springframework.web.filter.OncePerRequestFilter;
-
+import org.springframework.web.server.ServerWebExchange;
+import org.springframework.web.server.WebFilter;
+import org.springframework.web.server.WebFilterChain;
 import com.example.quickplay.services.JWTService;
-import com.example.quickplay.services.MyUserDetailsService;
+import com.example.quickplay.services.MyReactiveUserDetailsService;
+import com.mongodb.lang.NonNull;
 
-import jakarta.servlet.FilterChain;
-import jakarta.servlet.ServletException;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
+import reactor.core.publisher.Mono;
+
 @Component
-public class JwtFilter extends OncePerRequestFilter {
+public class JwtFilter implements WebFilter {
 
     @Autowired
     private JWTService jwtService;
 
     @Autowired
-    ApplicationContext context;
+    private MyReactiveUserDetailsService userDetailsService;
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        String authHeader = request.getHeader("Authorization");
-        String token = null;
-        String username = null;
+    public @NonNull Mono<Void> filter(@NonNull ServerWebExchange exchange, @NonNull WebFilterChain chain) {
+        String authHeader = exchange.getRequest()
+                .getHeaders()
+                .getFirst("Authorization");
 
-        if (authHeader != null && authHeader.startsWith("Bearer ")) {
-            token = authHeader.substring(7);
-            username = jwtService.extractUserName(token);
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return chain.filter(exchange);
         }
 
-        if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            UserDetails userDetails = context.getBean(MyUserDetailsService.class).loadUserByUsername(username);
-            if (jwtService.validateToken(token, userDetails)) {
-                UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
-                authToken.setDetails(new WebAuthenticationDetailsSource()
-                        .buildDetails(request));
-                SecurityContextHolder.getContext().setAuthentication(authToken);
-            }
-        }
+        String jwt = authHeader.substring(7);
+        String username = jwtService.extractUserName(jwt);
 
-        filterChain.doFilter(request, response);
+        if (username != null) {
+            return userDetailsService.findByUsername(username)
+                    .flatMap(userDetails -> {
+                        if (jwtService.validateToken(jwt, userDetails)) {
+                            Authentication auth = new UsernamePasswordAuthenticationToken(
+                                userDetails,
+                                null,
+                                userDetails.getAuthorities()
+                            );
+                            return exchange.getPrincipal()
+                                .then(Mono.fromRunnable(() -> 
+                                    SecurityContextHolder.getContext().setAuthentication(auth)
+                                ))
+                                .then(chain.filter(exchange));
+                        }
+                        return chain.filter(exchange);
+                    });
+        }
+        return chain.filter(exchange);
     }
 }
