@@ -1,11 +1,13 @@
 package com.example.quickplay.services;
 
-import com.example.quickplay.models.Users;
-import com.example.quickplay.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import com.example.quickplay.models.Users;
+import com.example.quickplay.repositories.UserRepository;
+
 import reactor.core.publisher.Mono;
 
 @Service
@@ -32,9 +34,11 @@ public class UserService {
                 }
                 
                 // Check if username already exists
-                return userRepository.findByUsername(newUser.getUsername())
-                    .flatMap(existingUser -> Mono.error(new IllegalArgumentException("Username already exists")))
+                return userRepository.findByEmail(newUser.getEmail())
+                    .flatMap(existingUser -> Mono.error(new IllegalArgumentException("Email already exists")))
                     .switchIfEmpty(Mono.defer(() -> {
+                        // Establish date
+                        newUser.setCreatedAt(String.valueOf(System.currentTimeMillis()));
                         // Hash password before saving
                         newUser.setPassword(passwordEncoder.encode(newUser.getPassword()));
                         // Set default role if not provided

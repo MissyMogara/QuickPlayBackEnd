@@ -3,6 +3,7 @@ package com.example.quickplay.models;
 public class LoginRequest {
     private String username;
     private String password;
+    private String email;
 
     public LoginRequest() {}
 
@@ -25,5 +26,13 @@ public class LoginRequest {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public String getEmail(String email) {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
     }
 }
