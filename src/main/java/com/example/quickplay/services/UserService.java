@@ -68,6 +68,5 @@ public class UserService {
             .switchIfEmpty(Mono.error(new BadCredentialsException("Invalid credentials")))
             .flatMap(userDetails -> Mono.just(jwtService.generateToken(username)));
     }
-
     
 }

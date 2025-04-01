@@ -4,12 +4,13 @@ package com.example.quickplay.security;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.ReactiveSecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebFilter;
 import org.springframework.web.server.WebFilterChain;
+
 import com.example.quickplay.services.JWTService;
 import com.example.quickplay.services.MyReactiveUserDetailsService;
 import com.mongodb.lang.NonNull;
@@ -35,27 +36,27 @@ public class JwtFilter implements WebFilter {
             return chain.filter(exchange);
         }
 
-        String jwt = authHeader.substring(7);
-        String username = jwtService.extractUserName(jwt);
+        String jwt = authHeader.substring(7).trim();
 
-        if (username != null) {
+        try {
+            String username = jwtService.extractUserName(jwt);
+            
             return userDetailsService.findByUsername(username)
                     .flatMap(userDetails -> {
                         if (jwtService.validateToken(jwt, userDetails)) {
                             Authentication auth = new UsernamePasswordAuthenticationToken(
-                                userDetails,
-                                null,
-                                userDetails.getAuthorities()
+                                    userDetails,
+                                    null,
+                                    userDetails.getAuthorities()
                             );
-                            return exchange.getPrincipal()
-                                .then(Mono.fromRunnable(() -> 
-                                    SecurityContextHolder.getContext().setAuthentication(auth)
-                                ))
-                                .then(chain.filter(exchange));
+                            return chain.filter(exchange)
+                                    .contextWrite(ReactiveSecurityContextHolder.withAuthentication(auth));
                         }
                         return chain.filter(exchange);
-                    });
+                    })
+                    .switchIfEmpty(chain.filter(exchange));
+        } catch (Exception e) {
+            return chain.filter(exchange);
         }
-        return chain.filter(exchange);
     }
 }

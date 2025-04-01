@@ -10,4 +10,5 @@ public interface UserRepository extends ReactiveMongoRepository<Users, String> {
     Mono<Users> findByUsername(String username);
 
     Mono<Users> findByEmail(String email);
+    
 }

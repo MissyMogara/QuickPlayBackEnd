@@ -25,19 +25,16 @@ public class JWTService {
     }
 
     public String generateToken(String username) {
-        Date now = new Date();
-        Date expiryDate = new Date(now.getTime() + 1000 * 60 * 60); // 1 hour
-
         return Jwts.builder()
-                .claim("sub", username)
-                .claim("iat", now.getTime() / 1000) // issuedAt in seconds
-                .claim("exp", expiryDate.getTime() / 1000) // expiration in seconds
+                .subject(username)  // Changed from .claim("sub", username)
+                .issuedAt(new Date())
+                .expiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60))
                 .signWith(key)
                 .compact();
     }
-
+    
     public String extractUserName(String token) {
-        return extractClaim(token, Claims::getSubject);
+        return extractAllClaims(token).getSubject();  // Directly get subject
     }
 
     private <T> T extractClaim(String token, Function<Claims, T> claimResolver) {
@@ -55,6 +52,9 @@ public class JWTService {
 
     public boolean validateToken(String token, UserDetails userDetails) {
         final String userName = extractUserName(token);
+        System.out.println("Token username: " + userName);
+        System.out.println("Expected username: " + userDetails.getUsername());
+        System.out.println("Token expiration date: " + extractExpiration(token));
         return (userName.equals(userDetails.getUsername()) && !isTokenExpired(token));
     }
 

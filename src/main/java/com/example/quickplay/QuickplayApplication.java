@@ -8,6 +8,7 @@ public class QuickplayApplication {
 
 	public static void main(String[] args) {
 		SpringApplication.run(QuickplayApplication.class, args);
+		
 	}
 
 }
