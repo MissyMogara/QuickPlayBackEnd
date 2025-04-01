@@ -36,10 +36,15 @@ public class PostController {
     }
 
     @GetMapping("/{postId}")
-    public Mono<ResponseEntity<Posts>> getPostById(@PathVariable String postId) {
+    public Mono<ResponseEntity<Posts>> getPostById(@PathVariable("postId") String postId) {
+        System.out.println("Fetching post with ID: " + postId);
         return postService.getPostById(postId)
             .map(ResponseEntity::ok)
-            .defaultIfEmpty(ResponseEntity.notFound().build());
+            .defaultIfEmpty(ResponseEntity.notFound().build())
+            .onErrorResume(e -> {
+                System.out.println("Error occurred: " + e.getMessage());
+                return Mono.just(ResponseEntity.badRequest().body(null));
+            });
     }
 
     @GetMapping("/user/{userId}")

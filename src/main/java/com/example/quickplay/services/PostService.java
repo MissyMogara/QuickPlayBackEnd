@@ -37,7 +37,10 @@ public class PostService {
 
     // Get a post by ID
     public Mono<Posts> getPostById(String id) {
-        return postRepository.findById(id).switchIfEmpty(Mono.error(new IllegalArgumentException("Post not found")));
+        System.out.println("Searching post by ID: " + id);
+        return postRepository.findById(id)
+        .doOnNext(post -> System.out.println("Post found: " + post))
+        .switchIfEmpty(Mono.error(new IllegalArgumentException("Post not found")));
     }
 
     // Get all posts by user ID
