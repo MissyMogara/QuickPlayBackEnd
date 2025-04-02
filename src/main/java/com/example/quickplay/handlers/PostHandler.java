@@ -74,6 +74,21 @@ public class PostHandler {
                         .bodyValue("No posts found with title: " + title));
         }
 
+        public Mono<ServerResponse> likePost(ServerRequest request) {
+        String postId = request.pathVariable("postId");
+        return postRepository.findById(postId)
+                .flatMap(post -> {
+                    post.setLikes(post.getLikes() + 1); // Increment likes
+                    return postRepository.save(post);
+                })
+                .flatMap(updatedPost -> ServerResponse.ok()
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .bodyValue(updatedPost))
+                .switchIfEmpty(ServerResponse.status(HttpStatus.NOT_FOUND)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .bodyValue("Post not found"));
+        }
+
 
 
 }
