@@ -38,6 +38,8 @@ public class RouterConfig implements WebFluxConfigurer {
         return RouterFunctions.route()
                 .POST("/api/posts", handler::createPost)
                 .GET("/api/posts/{postId}", handler::getPostById)
+                .GET("/api/posts/user/{userId}", handler::getPostsByUserId)
+                .GET("/api/posts/title/search", handler::getPostByTitle)
                 .build();
     }
 

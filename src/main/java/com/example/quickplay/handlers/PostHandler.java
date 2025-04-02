@@ -50,6 +50,30 @@ public class PostHandler {
                         .bodyValue("Post not found"));
         }
 
+        public Mono<ServerResponse> getPostsByUserId(ServerRequest request) {
+        String userId = request.pathVariable("userId");
+        return postRepository.findAllByUserId(userId)
+                .collectList()
+                .flatMap(posts -> ServerResponse.ok()
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .bodyValue(posts))
+                .switchIfEmpty(ServerResponse.status(HttpStatus.NOT_FOUND)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .bodyValue("No posts found for user ID: " + userId));
+        }
+
+        public Mono<ServerResponse> getPostByTitle(ServerRequest request) {
+        String title = request.queryParam("title").orElse("");
+        return postRepository.findByTitle(title)
+                .collectList()
+                .flatMap(posts -> ServerResponse.ok()
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .bodyValue(posts))
+                .switchIfEmpty(ServerResponse.status(HttpStatus.NOT_FOUND)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .bodyValue("No posts found with title: " + title));
+        }
+
 
 
 }
