@@ -89,6 +89,75 @@ public class PostHandler {
                         .bodyValue("Post not found"));
         }
 
+        public Mono<ServerResponse> unlikePost(ServerRequest request) {
+        String postId = request.pathVariable("postId");
+        return postRepository.findById(postId)
+                .flatMap(post -> {
+                    post.setLikes(post.getLikes() - 1); // Decrement likes
+                    return postRepository.save(post);
+                })
+                .flatMap(updatedPost -> ServerResponse.ok()
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .bodyValue(updatedPost))
+                .switchIfEmpty(ServerResponse.status(HttpStatus.NOT_FOUND)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .bodyValue("Post not found"));
+        }
+
+
+        public Mono<ServerResponse> incrementViews(ServerRequest request) {
+        String postId = request.pathVariable("postId");
+        return postRepository.findById(postId)
+                .flatMap(post -> {
+                    post.setViews(post.getViews() + 1); // Increment views
+                    return postRepository.save(post);
+                })
+                .flatMap(updatedPost -> ServerResponse.ok()
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .bodyValue(updatedPost))
+                .switchIfEmpty(ServerResponse.status(HttpStatus.NOT_FOUND)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .bodyValue("Post not found"));
+        }
+
+        public Mono<ServerResponse> updatePost(ServerRequest request) {
+        String postId = request.pathVariable("postId");
+        return request.bodyToMono(Post.class)
+                .flatMap(updatedPost -> postRepository.findById(postId)
+                        .flatMap(existingPost -> {
+                            if(updatedPost.getTitle() != null && !updatedPost.getTitle().equals("")) {
+                                existingPost.setTitle(updatedPost.getTitle());
+                            }
+                            if (updatedPost.getContent() != null && !updatedPost.getContent().equals("")) {
+                                existingPost.setContent(updatedPost.getContent());
+                            }
+                            if (updatedPost.getVideoUrls() != null && !updatedPost.getVideoUrls().isEmpty()) {
+                                existingPost.setVideoUrls(updatedPost.getVideoUrls());
+                            }
+                            return postRepository.save(existingPost);
+                        })
+                        .flatMap(savedPost -> ServerResponse.ok()
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .bodyValue(savedPost))
+                        .switchIfEmpty(ServerResponse.status(HttpStatus.NOT_FOUND)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .bodyValue("Post not found")))
+                .onErrorResume(e -> ServerResponse.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .bodyValue("Error updating post: " + e.getMessage()));
+        }
+
+    public Mono<ServerResponse> deletePost(ServerRequest request) {
+        String postId = request.pathVariable("postId");
+        return postRepository.findById(postId)
+                .flatMap(post -> postRepository.delete(post)
+                        .then(ServerResponse.ok()
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .bodyValue("Post deleted successfully")))
+                .switchIfEmpty(ServerResponse.status(HttpStatus.NOT_FOUND)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .bodyValue("Post not found"));
+    }
 
 
 }

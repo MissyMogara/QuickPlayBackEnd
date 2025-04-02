@@ -41,6 +41,10 @@ public class RouterConfig implements WebFluxConfigurer {
                 .GET("/api/posts/user/{userId}", handler::getPostsByUserId)
                 .GET("/api/posts/title/search", handler::getPostByTitle)
                 .PUT("/api/posts/{postId}/like", handler::likePost)
+                .PUT("/api/posts/{postId}/unlike", handler::unlikePost)
+                .PUT("/api/posts/{postId}/view", handler::incrementViews)
+                .PUT("/api/posts/{postId}/update", handler::updatePost)
+                .DELETE("/api/posts/{postId}", handler::deletePost)
                 .build();
     }
 
