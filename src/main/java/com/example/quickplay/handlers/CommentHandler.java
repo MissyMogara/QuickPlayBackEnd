@@ -1,8 +1,7 @@
 package com.example.quickplay.handlers;
 
-import java.util.Map;
-
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.mongodb.core.FindAndModifyOptions;
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Update;
@@ -91,7 +90,7 @@ public class CommentHandler {
                 .bodyValue("User doesn't have comments")
         );
     }
-    
+
     public Mono<ServerResponse> likeComment(ServerRequest request) {
         String commentId = request.pathVariable("commentId");
         
@@ -137,6 +136,54 @@ public class CommentHandler {
                         .bodyValue("Comment can't be unliked") :
                     ServerResponse.status(HttpStatus.NOT_FOUND)
                         .bodyValue("Comment not found"));
+        });
+    }
+
+    public Mono<ServerResponse> updateComment(ServerRequest request) {
+        String commentId = request.pathVariable("commentId");
+
+        return request.bodyToMono(Comment.class)
+            .flatMap(updatedComment -> {
+                Update update = new Update();
+
+                if(!updatedComment.getText().isEmpty() && updatedComment.getText() != null) {
+                    update.set("text", updatedComment.getText());
+                }
+
+                return reactiveMongoTemplate.findAndModify(
+                    Query.query(Criteria.where("_id").is(commentId)),
+                    update,
+                    FindAndModifyOptions.options().returnNew(true),
+                    Comment.class
+                );
+            })
+            .flatMap(updatedComment -> ServerResponse.ok()
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue(updatedComment))
+            .switchIfEmpty(ServerResponse.status(HttpStatus.NOT_FOUND)
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue("Comment not found"))
+            .onErrorResume(e -> ServerResponse.status(HttpStatus.INTERNAL_SERVER_ERROR)
+            .contentType(MediaType.APPLICATION_JSON)
+            .bodyValue("Error updating comment: " + e.getMessage()));
+    }
+
+    public Mono<ServerResponse> deleteComment(ServerRequest request) {
+        String commentId = request.pathVariable("commentId");
+
+        return reactiveMongoTemplate.remove(
+            Query.query(Criteria.where("_id").is(commentId)),
+            Comment.class
+        )
+        .flatMap(deleteResult -> {
+            if(deleteResult.getDeletedCount() > 0){
+                return ServerResponse.ok()
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue("Comment deleted successfully");
+            }
+            return ServerResponse.status(HttpStatus.NOT_FOUND)
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue("Comment not found");
         });
     }
 

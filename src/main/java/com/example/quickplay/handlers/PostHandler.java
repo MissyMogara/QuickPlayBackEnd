@@ -2,9 +2,7 @@ package com.example.quickplay.handlers;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.FindAndModifyOptions;
-import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
-import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
@@ -176,14 +174,21 @@ public class PostHandler {
 
         public Mono<ServerResponse> deletePost(ServerRequest request) {
                 String postId = request.pathVariable("postId");
-                return postRepository.findById(postId)
-                        .flatMap(post -> postRepository.delete(post)
-                                .then(ServerResponse.ok()
-                                        .contentType(MediaType.APPLICATION_JSON)
-                                        .bodyValue("Post deleted successfully")))
-                        .switchIfEmpty(ServerResponse.status(HttpStatus.NOT_FOUND)
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .bodyValue("Post not found"));
+                
+                return reactiveMongoTemplate.remove(
+                    Query.query(Criteria.where("_id").is(postId)),
+                    Post.class
+                )
+                .flatMap(deleteResult -> {
+                    if (deleteResult.getDeletedCount() > 0) {
+                        return ServerResponse.ok()
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .bodyValue("Post deleted successfully");
+                    }
+                    return ServerResponse.status(HttpStatus.NOT_FOUND)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .bodyValue("Post not found");
+                });
         }
 
 

@@ -23,17 +23,6 @@ import com.example.quickplay.handlers.UserHandler;
 @EnableWebFluxSecurity
 public class RouterConfig implements WebFluxConfigurer {
 
-    // @Bean
-    // public RouterFunction<ServerResponse> rutas(ProductoHandler handler) {
-    //     return RouterFunctions.route()
-    //             .GET("/api/productos", handler::listar)
-    //             .GET("/api/productos/{id}", handler::ver)
-    //             .POST("/api/productos", handler::crear)
-    //             .PUT("/api/productos/{id}", handler::editar)
-    //             .DELETE("/api/productos/{id}", handler::eliminar)
-    //             .build();
-    // }
-
     @Bean
     public RouterFunction<ServerResponse> postRoutes(PostHandler handler) {
         return RouterFunctions.route()
@@ -58,6 +47,8 @@ public class RouterConfig implements WebFluxConfigurer {
         .GET("/api/comments/user/{userId}/order", handler::getCommentsByUserIdOrderByLikes)
         .PUT("/api/comments/{commentId}/like", handler::likeComment)
         .PUT("/api/comments/{commentId}/unlike", handler::unlikeComment)
+        .PUT("/api/comments/{commentId}/update", handler::updateComment)
+        .DELETE("/api/comments/{commentId}", handler::deleteComment)
         .build();
     }
 
