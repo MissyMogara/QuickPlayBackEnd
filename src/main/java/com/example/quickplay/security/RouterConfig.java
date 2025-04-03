@@ -15,6 +15,7 @@ import org.springframework.web.reactive.function.server.RouterFunction;
 import org.springframework.web.reactive.function.server.RouterFunctions;
 import org.springframework.web.reactive.function.server.ServerResponse;
 
+import com.example.quickplay.handlers.CommentHandler;
 import com.example.quickplay.handlers.PostHandler;
 import com.example.quickplay.handlers.UserHandler;
 
@@ -46,6 +47,18 @@ public class RouterConfig implements WebFluxConfigurer {
                 .PUT("/api/posts/{postId}/update", handler::updatePost)
                 .DELETE("/api/posts/{postId}", handler::deletePost)
                 .build();
+    }
+
+    @Bean
+    public RouterFunction<ServerResponse> commentRoutes(CommentHandler handler) {
+        return RouterFunctions.route()
+        .POST("/api/comments", handler::createComment)
+        .GET("/api/comments/{commentId}", handler::getCommentById)
+        .GET("/api/comments/user/{userId}", handler::getCommentsByUserId)
+        .GET("/api/comments/user/{userId}/order", handler::getCommentsByUserIdOrderByLikes)
+        .PUT("/api/comments/{commentId}/like", handler::likeComment)
+        .PUT("/api/comments/{commentId}/unlike", handler::unlikeComment)
+        .build();
     }
 
     @Bean
