@@ -17,6 +17,7 @@ import org.springframework.web.reactive.function.server.ServerResponse;
 
 import com.example.quickplay.handlers.CommentHandler;
 import com.example.quickplay.handlers.PostHandler;
+import com.example.quickplay.handlers.ProfileHandler;
 import com.example.quickplay.handlers.UserHandler;
 
 @Configuration
@@ -49,6 +50,13 @@ public class RouterConfig implements WebFluxConfigurer {
         .PUT("/api/comments/{commentId}/unlike", handler::unlikeComment)
         .PUT("/api/comments/{commentId}/update", handler::updateComment)
         .DELETE("/api/comments/{commentId}", handler::deleteComment)
+        .build();
+    }
+
+    @Bean
+    public RouterFunction<ServerResponse> profileRoutes(ProfileHandler handler) {
+        return RouterFunctions.route()
+        .GET("/api/profiles/{userId}", handler::getProfileByUserId)
         .build();
     }
 
