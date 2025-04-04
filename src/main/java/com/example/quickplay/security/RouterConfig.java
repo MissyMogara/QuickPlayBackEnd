@@ -57,6 +57,7 @@ public class RouterConfig implements WebFluxConfigurer {
     public RouterFunction<ServerResponse> profileRoutes(ProfileHandler handler) {
         return RouterFunctions.route()
         .GET("/api/profiles/{userId}", handler::getProfileByUserId)
+        .PUT("/api/profiles/{userId}/update", handler::updateProfile)
         .build();
     }
 

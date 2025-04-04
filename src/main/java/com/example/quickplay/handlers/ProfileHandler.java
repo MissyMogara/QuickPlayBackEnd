@@ -37,4 +37,29 @@ public class ProfileHandler {
                         .bodyValue("Profile not found"));
     }
 
+    public Mono<ServerResponse> updateProfile(ServerRequest request) {
+        String userId = request.pathVariable("userId");
+
+        return request.bodyToMono(Profile.class)
+                .flatMap(profile -> profileRepository.findByUserId(userId)
+                        .flatMap(existingProfile -> {
+                            if (profile.getBio() != null && !profile.getBio().equals(existingProfile.getBio())) {
+                                existingProfile.setBio(profile.getBio());
+                            }
+                            if (profile.getProfilePictureUrl() != null && !profile.getProfilePictureUrl().equals(existingProfile.getProfilePictureUrl())) {
+                                existingProfile.setProfilePictureUrl(profile.getProfilePictureUrl());
+                            }
+                            return profileRepository.save(existingProfile);
+                        })
+                        .flatMap(updatedProfile -> ServerResponse.ok()
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .bodyValue(updatedProfile))
+                        .switchIfEmpty(ServerResponse.status(HttpStatus.NOT_FOUND)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .bodyValue("Profile not found")))
+                .onErrorResume(e -> ServerResponse.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .bodyValue("Error updating profile: " + e.getMessage()));
+    }
+
 }
