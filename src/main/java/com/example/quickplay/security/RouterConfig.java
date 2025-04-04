@@ -59,7 +59,7 @@ public class RouterConfig implements WebFluxConfigurer {
                 .POST("/api/users/login", handler::login)
                 .POST("/api/users/register", handler::register)
                 .PUT("/api/users/{userId}/update", handler::updateUser)
-                .PUT("/api/users/{userId}/folow", handler::followUser)
+                .PUT("/api/users/{userId}/follow/{followerId}", handler::followUser)
                 .DELETE("/api/users/{userId}", handler::deleteUser)
                 .build();
     }
