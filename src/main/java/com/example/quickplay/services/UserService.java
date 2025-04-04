@@ -1,14 +1,13 @@
 package com.example.quickplay.services;
 
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+
 import com.example.quickplay.dto.UserRegisterDTO;
 import com.example.quickplay.entities.User;
 import com.example.quickplay.repositories.UserRepository;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Service;
-import reactor.core.publisher.Mono;
 
-import java.util.Optional;
+import reactor.core.publisher.Mono;
 
 @Service
 public class UserService {
@@ -23,6 +22,10 @@ public class UserService {
 
     public Mono<User> findByUsername(String username) {
         return this.userRepository.findByUsername(username);
+    }
+
+    public Mono<User> findByEmail(String email) {
+        return this.userRepository.findByEmail(email);
     }
 
     public Mono<User> save(UserRegisterDTO userRegisterDTO) {
