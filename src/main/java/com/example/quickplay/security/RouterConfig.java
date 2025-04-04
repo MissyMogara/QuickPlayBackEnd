@@ -55,8 +55,12 @@ public class RouterConfig implements WebFluxConfigurer {
     @Bean
     public RouterFunction<ServerResponse> loginRoutes(UserHandler handler) {
         return RouterFunctions.route()
+                .GET("/api/users/{userId}", handler::getUserById)
                 .POST("/api/users/login", handler::login)
                 .POST("/api/users/register", handler::register)
+                .PUT("/api/users/{userId}/update", handler::updateUser)
+                .PUT("/api/users/{userId}/folow", handler::followUser)
+                .DELETE("/api/users/{userId}", handler::deleteUser)
                 .build();
     }
 
@@ -74,7 +78,7 @@ public class RouterConfig implements WebFluxConfigurer {
         http
                 .securityMatcher(new PathPatternParserServerWebExchangeMatcher("/api/**"))
                 .authorizeExchange(exchanges -> exchanges
-                        .pathMatchers("/api/users/**").permitAll()  // Rutas públicas para autenticación/registro
+                        .pathMatchers("/api/users/login", "/api/users/register").permitAll()  // Rutas públicas para autenticación/registro
                         .anyExchange().authenticated()
                 )
                 .addFilterBefore(jwtFilter, SecurityWebFiltersOrder.AUTHENTICATION)
