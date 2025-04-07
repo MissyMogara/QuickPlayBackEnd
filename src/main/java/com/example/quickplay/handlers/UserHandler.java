@@ -3,6 +3,9 @@ package com.example.quickplay.handlers;
 import java.time.LocalDateTime;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.mongodb.core.ReactiveMongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
@@ -12,15 +15,12 @@ import org.springframework.web.reactive.function.server.ServerResponse;
 import com.example.quickplay.dto.UserLoginDTO;
 import com.example.quickplay.dto.UserRegisterDTO;
 import com.example.quickplay.entities.Profile;
+import com.example.quickplay.entities.Project;
 import com.example.quickplay.entities.User;
 import com.example.quickplay.repositories.ProfileRepository;
 import com.example.quickplay.repositories.UserRepository;
 import com.example.quickplay.security.JwtUtil;
 import com.example.quickplay.services.UserService;
-
-import org.springframework.data.mongodb.core.ReactiveMongoTemplate;
-import org.springframework.data.mongodb.core.query.Criteria;
-import org.springframework.data.mongodb.core.query.Update;
 
 import reactor.core.publisher.Mono;
 
@@ -190,6 +190,63 @@ public class UserHandler {
                         .onErrorResume(e -> ServerResponse.status(HttpStatus.INTERNAL_SERVER_ERROR)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .bodyValue("Error following user: " + e.getMessage()));
+        }
+
+        public Mono<ServerResponse> unfollowUser(ServerRequest request) {
+                String userId = request.pathVariable("userId");
+                String followerId = request.pathVariable("followerId");
+
+                return reactiveMongoTemplate.update(Profile.class)
+                        .matching(Criteria.where("userId").is(userId))
+                        .apply(new Update().pull("followers", followerId))
+                        .findAndModify()
+                        .flatMap(updatedProfile -> ServerResponse.ok()
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .bodyValue(updatedProfile))
+                        .switchIfEmpty(ServerResponse.status(HttpStatus.NOT_FOUND)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .bodyValue("User not found"))
+                        .onErrorResume(e -> ServerResponse.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .bodyValue("Error unfollowing user: " + e.getMessage()));
+        }
+        
+        public Mono<ServerResponse> followProject(ServerRequest request) {
+                String userId = request.pathVariable("userId");
+                String projectId = request.pathVariable("projectId");
+
+                return reactiveMongoTemplate.update(Project.class)
+                        .matching(Criteria.where("_id").is(projectId))
+                        .apply(new Update().addToSet("followers", userId))
+                        .findAndModify()
+                        .flatMap(updatedProfile -> ServerResponse.ok()
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .bodyValue(updatedProfile))
+                        .switchIfEmpty(ServerResponse.status(HttpStatus.NOT_FOUND)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .bodyValue("Project not found"))
+                        .onErrorResume(e -> ServerResponse.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .bodyValue("Error following project: " + e.getMessage()));
+        }
+
+        public Mono<ServerResponse> unfollowProject(ServerRequest request) {
+                String userId = request.pathVariable("userId");
+                String projectId = request.pathVariable("projectId");
+
+                return reactiveMongoTemplate.update(Project.class)
+                        .matching(Criteria.where("_id").is(projectId))
+                        .apply(new Update().pull("followers", userId))
+                        .findAndModify()
+                        .flatMap(updatedProfile -> ServerResponse.ok()
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .bodyValue(updatedProfile))
+                        .switchIfEmpty(ServerResponse.status(HttpStatus.NOT_FOUND)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .bodyValue("Project not found"))
+                        .onErrorResume(e -> ServerResponse.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .bodyValue("Error unfollowing project: " + e.getMessage()));
         }
 
 }

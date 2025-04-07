@@ -66,20 +66,26 @@ public class RouterConfig implements WebFluxConfigurer {
     public RouterFunction<ServerResponse> projectRoutes(ProjectHandler handler) {
         return RouterFunctions.route()
         .POST("/api/projects", handler::createProject)
-        //.GET("/api/projects/{userId}", handler::getProjectByUserId)
+        .GET("/api/projects/{projectId}", handler::getProjectById)
+        .GET("/api/projects/{userId}/user", handler::getProjectsByUserId)
+        .PUT("/api/projects/{projectId}/addPost/{postId}", handler::addPostToProject)
+        //.PUT("/api/projects/{projectId}/removePost/{postId}", handler::removePostFromProject)
         //.PUT("/api/projects/{userId}/update", handler::updateProject)
         //.DELETE("/api/projects/{userId}", handler::deleteProject)
         .build();
     }
 
     @Bean
-    public RouterFunction<ServerResponse> loginRoutes(UserHandler handler) {
+    public RouterFunction<ServerResponse> userRoutes(UserHandler handler) {
         return RouterFunctions.route()
                 .GET("/api/users/{userId}", handler::getUserById)
                 .POST("/api/users/login", handler::login)
                 .POST("/api/users/register", handler::register)
                 .PUT("/api/users/{userId}/update", handler::updateUser)
                 .PUT("/api/users/{userId}/follow/{followerId}", handler::followUser)
+                .PUT("/api/users/{userId}/unfollow/{followerId}", handler::unfollowUser)
+                .PUT("/api/users/{userId}/followProject/{projectId}", handler::followProject)
+                .PUT("/api/users/{userId}/unfollowProject/{projectId}", handler::unfollowProject)
                 .DELETE("/api/users/{userId}", handler::deleteUser)
                 .build();
     }

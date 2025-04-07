@@ -1,7 +1,11 @@
 package com.example.quickplay.handlers;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.mongodb.core.FindAndModifyOptions;
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
@@ -36,4 +40,49 @@ public class ProjectHandler {
                         .contentType(MediaType.APPLICATION_JSON)
                         .bodyValue("Error creating project: " + e.getMessage()));
     }
+
+    public Mono<ServerResponse> getProjectById(ServerRequest request) {
+        String projectId = request.pathVariable("projectId");
+
+        return projectRepository.findById(projectId)
+                .flatMap(project -> ServerResponse.ok()
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .bodyValue(project))
+                .switchIfEmpty(ServerResponse.status(HttpStatus.NOT_FOUND)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .bodyValue("Project not found"));
+    }
+
+    public Mono<ServerResponse> getProjectsByUserId(ServerRequest request) {
+        String userId = request.pathVariable("userId");
+
+        return projectRepository.findByUserId(userId)
+                .flatMap(project -> ServerResponse.ok()
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .bodyValue(project))
+                .switchIfEmpty(ServerResponse.status(HttpStatus.NOT_FOUND)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .bodyValue("Project not found"));
+    }
+
+    public Mono<ServerResponse> addPostToProject(ServerRequest request) {
+        String postId = request.pathVariable("postId");
+        String projectId = request.pathVariable("projectId");
+
+        return reactiveMongoTemplate.findAndModify(
+                Query.query(Criteria.where("_id").is(projectId)),
+                new Update().addToSet("posts", postId),
+                FindAndModifyOptions.options().returnNew(true),
+                Project.class
+        )
+        .flatMap(updatedPost -> ServerResponse.ok()
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue(updatedPost))
+        .switchIfEmpty(ServerResponse.status(HttpStatus.NOT_FOUND)
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue("Post not found"))
+        .onErrorResume(e -> ServerResponse.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue("Error following post: " + e.getMessage()));
+        }
 }
