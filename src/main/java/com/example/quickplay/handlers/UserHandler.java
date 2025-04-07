@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -17,7 +18,10 @@ import com.example.quickplay.dto.UserRegisterDTO;
 import com.example.quickplay.entities.Profile;
 import com.example.quickplay.entities.Project;
 import com.example.quickplay.entities.User;
+import com.example.quickplay.repositories.CommentRepository;
+import com.example.quickplay.repositories.PostRepository;
 import com.example.quickplay.repositories.ProfileRepository;
+import com.example.quickplay.repositories.ProjectRepository;
 import com.example.quickplay.repositories.UserRepository;
 import com.example.quickplay.security.JwtUtil;
 import com.example.quickplay.services.UserService;
@@ -37,6 +41,15 @@ public class UserHandler {
         
         @Autowired
         private ProfileRepository profileRepository;
+
+        @Autowired
+        private PostRepository postRepository;
+
+        @Autowired
+        private CommentRepository commentRepository;
+
+        @Autowired
+        private ProjectRepository projectRepository;
 
         public UserHandler(ReactiveMongoTemplate reactiveMongoTemplate) {
                 this.reactiveMongoTemplate = reactiveMongoTemplate;
@@ -124,7 +137,7 @@ public class UserHandler {
                         .flatMap(dto ->
                                 userRepository.findById(userId)
                                         .flatMap(existingUser -> {
-                                                // Actualiza el usuario con los nuevos datos
+                                                
                                                 if (dto.getUsername() != null && !dto.getUsername().equals(existingUser.getUsername()) && dto.getUsername().length() > 0) {
                                                         existingUser.setUsername(dto.getUsername());
                                                     }
@@ -158,20 +171,31 @@ public class UserHandler {
                 String userId = request.pathVariable("userId");
             
                 return userRepository.findById(userId)
-                        .flatMap(existingUser -> 
-                            profileRepository.deleteByUserId(userId) // Elimina el perfil
-                                    .then(userRepository.delete(existingUser)) // Luego elimina el usuario
-                                    .then(ServerResponse.ok()
-                                            .contentType(MediaType.APPLICATION_JSON)
-                                            .bodyValue("User and profile deleted"))
+                    .flatMap(existingUser ->
+                        profileRepository.deleteByUserId(userId)
+                        .then(
+                            projectRepository.deleteByUserId(userId)
                         )
-                        .switchIfEmpty(ServerResponse.status(HttpStatus.NOT_FOUND)
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .bodyValue("User not found"))
-                        .onErrorResume(e -> ServerResponse.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .bodyValue("Error deleting user: " + e.getMessage()));
-        }
+                        .then(
+                            postRepository.deleteByUserId(userId)
+                        )
+                        .then(
+                            commentRepository.deleteByUserId(userId)
+                        )
+                        .then(
+                            userRepository.delete(existingUser)
+                        )
+                        .then(ServerResponse.ok()
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .bodyValue("User, profile, projects, posts, and comments deleted successfully"))
+                    )
+                    .switchIfEmpty(ServerResponse.status(HttpStatus.NOT_FOUND)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .bodyValue("User not found"))
+                    .onErrorResume(e -> ServerResponse.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .bodyValue("Error deleting user: " + e.getMessage()));
+            }
 
         public Mono<ServerResponse> followUser(ServerRequest request) {
                 String userId = request.pathVariable("userId");

@@ -9,5 +9,4 @@ import reactor.core.publisher.Mono;
 public interface ProjectRepository extends ReactiveMongoRepository<Project, String> {
     Mono<Project> findByUserId(String userId);
     Mono<Void> deleteByUserId(String userId);
-    
 }
