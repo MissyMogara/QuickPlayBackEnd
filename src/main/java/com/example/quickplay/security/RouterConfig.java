@@ -18,6 +18,7 @@ import org.springframework.web.reactive.function.server.ServerResponse;
 import com.example.quickplay.handlers.CommentHandler;
 import com.example.quickplay.handlers.PostHandler;
 import com.example.quickplay.handlers.ProfileHandler;
+import com.example.quickplay.handlers.ProjectHandler;
 import com.example.quickplay.handlers.UserHandler;
 
 @Configuration
@@ -58,6 +59,16 @@ public class RouterConfig implements WebFluxConfigurer {
         return RouterFunctions.route()
         .GET("/api/profiles/{userId}", handler::getProfileByUserId)
         .PUT("/api/profiles/{userId}/update", handler::updateProfile)
+        .build();
+    }
+
+    @Bean
+    public RouterFunction<ServerResponse> projectRoutes(ProjectHandler handler) {
+        return RouterFunctions.route()
+        .POST("/api/projects", handler::createProject)
+        //.GET("/api/projects/{userId}", handler::getProjectByUserId)
+        //.PUT("/api/projects/{userId}/update", handler::updateProject)
+        //.DELETE("/api/projects/{userId}", handler::deleteProject)
         .build();
     }
 

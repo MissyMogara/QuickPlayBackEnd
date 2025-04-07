@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
-@Document(collection = "profiles")
+@Document(collection = "projects")
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
@@ -22,8 +22,11 @@ public class Project {
     @Id
     private String id;
 
-    @Indexed(unique = true) 
     private String userId;
+
+    @Indexed(unique = true)
+    private String name; 
+    private String description; 
     private List<String> posts; // Id de los posts
     private List<String> followers; // Id de los seguidores
     private String createdAt;
