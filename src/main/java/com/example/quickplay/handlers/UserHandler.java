@@ -125,10 +125,10 @@ public class UserHandler {
                                 userRepository.findById(userId)
                                         .flatMap(existingUser -> {
                                                 // Actualiza el usuario con los nuevos datos
-                                                if (dto.getUsername() != null && !dto.getUsername().equals(existingUser.getUsername())) {
+                                                if (dto.getUsername() != null && !dto.getUsername().equals(existingUser.getUsername()) && dto.getUsername().length() > 0) {
                                                         existingUser.setUsername(dto.getUsername());
                                                     }
-                                                    if (dto.getEmail() != null && !dto.getEmail().equals(existingUser.getEmail())) {
+                                                    if (dto.getEmail() != null && !dto.getEmail().equals(existingUser.getEmail()) && dto.getEmail().length() > 0) {
                                                         existingUser.setEmail(dto.getEmail());
                                                     }
                                                     if (dto.getName() != null && !dto.getName().equals(existingUser.getName())) {
@@ -137,7 +137,7 @@ public class UserHandler {
                                                     if (dto.getSurname() != null && !dto.getSurname().equals(existingUser.getSurname())) {
                                                         existingUser.setSurname(dto.getSurname());
                                                     }
-                                                    if (dto.getRole() != null && !dto.getRole().equals(existingUser.getRole())) {
+                                                    if (dto.getRole() != null && !dto.getRole().equals(existingUser.getRole()) && dto.getRole().length() > 0) {
                                                         existingUser.setRole(dto.getRole());
                                                     }
                                                 return userRepository.save(existingUser)

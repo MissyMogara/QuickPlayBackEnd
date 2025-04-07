@@ -144,13 +144,13 @@ public class PostHandler {
                     .flatMap(updatedPost -> {
                         Update update = new Update();
                         
-                        if(updatedPost.getTitle() != null && !updatedPost.getTitle().isEmpty()) {
+                        if(updatedPost.getTitle() != null && !updatedPost.getTitle().isEmpty() && updatedPost.getTitle().length() > 0) {
                             update.set("title", updatedPost.getTitle());
                         }
                         if(updatedPost.getContent() != null && !updatedPost.getContent().isEmpty()) {
                             update.set("content", updatedPost.getContent());
                         }
-                        if(updatedPost.getVideoUrls() != null && !updatedPost.getVideoUrls().isEmpty()) {
+                        if(updatedPost.getVideoUrls() != null && !updatedPost.getVideoUrls().isEmpty() && !updatedPost.getVideoUrls().isEmpty()) {
                             update.set("videoUrls", updatedPost.getVideoUrls());
                         }
                         

@@ -85,4 +85,50 @@ public class ProjectHandler {
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue("Error following post: " + e.getMessage()));
         }
+
+        public Mono<ServerResponse> removePostFromProject(ServerRequest request) {
+            String postId = request.pathVariable("postId");
+            String projectId = request.pathVariable("projectId");
+
+            return reactiveMongoTemplate.findAndModify(
+                    Query.query(Criteria.where("_id").is(projectId)),
+                    new Update().pull("posts", postId),
+                    FindAndModifyOptions.options().returnNew(true),
+                    Project.class
+            )
+            .flatMap(updatedPost -> ServerResponse.ok()
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .bodyValue(updatedPost))
+            .switchIfEmpty(ServerResponse.status(HttpStatus.NOT_FOUND)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .bodyValue("Post not found"))
+            .onErrorResume(e -> ServerResponse.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .bodyValue("Error unfollowing post: " + e.getMessage()));
+        }
+
+    public Mono<ServerResponse> updateProject(ServerRequest request) {
+        String projectId = request.pathVariable("projectId");
+
+        return request.bodyToMono(Project.class)
+                .flatMap(project -> projectRepository.findById(projectId)
+                        .flatMap(existingProject -> {
+                            if (project.getName() != null && !project.getName().equals(existingProject.getName()) && project.getName().length() > 0) {
+                                existingProject.setName(project.getName());
+                            }
+                            if (project.getDescription() != null && !project.getDescription().equals(existingProject.getDescription()) && project.getDescription().length() > 0) {
+                                existingProject.setDescription(project.getDescription());
+                            }
+                            if (project.getImage() != null && !project.getImage().equals(existingProject.getImage()) && project.getImage().length() > 0) {
+                                existingProject.setImage(project.getImage());
+                            }
+                            return projectRepository.save(existingProject);
+                        }))
+                .flatMap(updatedProject -> ServerResponse.ok()
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .bodyValue(updatedProject))
+                .switchIfEmpty(ServerResponse.status(HttpStatus.NOT_FOUND)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .bodyValue("Project not found"));
+    }
 }

@@ -69,8 +69,8 @@ public class RouterConfig implements WebFluxConfigurer {
         .GET("/api/projects/{projectId}", handler::getProjectById)
         .GET("/api/projects/{userId}/user", handler::getProjectsByUserId)
         .PUT("/api/projects/{projectId}/addPost/{postId}", handler::addPostToProject)
-        //.PUT("/api/projects/{projectId}/removePost/{postId}", handler::removePostFromProject)
-        //.PUT("/api/projects/{userId}/update", handler::updateProject)
+        .PUT("/api/projects/{projectId}/removePost/{postId}", handler::removePostFromProject)
+        .PUT("/api/projects/{projectId}/update", handler::updateProject)
         //.DELETE("/api/projects/{userId}", handler::deleteProject)
         .build();
     }

@@ -27,6 +27,7 @@ public class Project {
     @Indexed(unique = true)
     private String name; 
     private String description; 
+    private String image; // URL de la imagen
     private List<String> posts; // Id de los posts
     private List<String> followers; // Id de los seguidores
     private String createdAt;
