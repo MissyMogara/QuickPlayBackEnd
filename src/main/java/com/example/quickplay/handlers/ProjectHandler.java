@@ -20,7 +20,7 @@ import reactor.core.publisher.Mono;
 
 @Component
 public class ProjectHandler {
-    // TODO: SI BORRAS UN PROYECTO TAMBIEN BORRAS LOS POSTS, SI BORRAS UN USUARIO TAMBIEN BORRAS LOS PROYECTOS
+    // SI BORRAS UN PROYECTO HA DE BORRARSE ENTERO Y NO QUITAR LA REFERENCIA SOLO
     private final ReactiveMongoTemplate reactiveMongoTemplate;
 
     @Autowired
