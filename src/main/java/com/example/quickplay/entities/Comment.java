@@ -24,7 +24,7 @@ public class Comment {
 
     private String text;
 
-    private List<String> responses;  // Id comentarios
+    private List<String> replies;  // Id comentarios
 
     private Integer likes;
 

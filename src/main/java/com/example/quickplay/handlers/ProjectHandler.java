@@ -20,7 +20,6 @@ import reactor.core.publisher.Mono;
 
 @Component
 public class ProjectHandler {
-    // SI BORRAS UN PROYECTO HA DE BORRARSE ENTERO Y NO QUITAR LA REFERENCIA SOLO
     private final ReactiveMongoTemplate reactiveMongoTemplate;
 
     @Autowired
@@ -96,6 +95,12 @@ public class ProjectHandler {
                     new Update().pull("posts", postId),
                     FindAndModifyOptions.options().returnNew(true),
                     Project.class
+            )
+            .then(
+                reactiveMongoTemplate.remove(
+                    Query.query(Criteria.where("_id").is(postId)),
+                    Post.class
+                )
             )
             .flatMap(updatedPost -> ServerResponse.ok()
                     .contentType(MediaType.APPLICATION_JSON)

@@ -50,7 +50,11 @@ public class RouterConfig implements WebFluxConfigurer {
         .PUT("/api/comments/{commentId}/like", handler::likeComment)
         .PUT("/api/comments/{commentId}/unlike", handler::unlikeComment)
         .PUT("/api/comments/{commentId}/update", handler::updateComment)
+        .PUT("/api/comments/{commentId}/addCommentPost/{postId}", handler::addCommentToPost)
+        .DELETE("/api/comments/{commentId}/removeCommentPost/{postId}", handler::removeCommentFromPost)
+        .PUT("/api/comments/{commentId}/replies/{replyId}", handler::addCommentToComment)
         .DELETE("/api/comments/{commentId}", handler::deleteComment)
+        .DELETE("/api/comments/{commentId}/replies/{replyId}", handler::removeCommentFromComment)
         .build();
     }
 
