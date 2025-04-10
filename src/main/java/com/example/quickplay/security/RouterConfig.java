@@ -20,6 +20,7 @@ import com.example.quickplay.handlers.PostHandler;
 import com.example.quickplay.handlers.ProfileHandler;
 import com.example.quickplay.handlers.ProjectHandler;
 import com.example.quickplay.handlers.UserHandler;
+import com.example.quickplay.handlers.VideoHandler;
 
 @Configuration
 @EnableWebFluxSecurity
@@ -91,6 +92,14 @@ public class RouterConfig implements WebFluxConfigurer {
                 .PUT("/api/users/{userId}/followProject/{projectId}", handler::followProject)
                 .PUT("/api/users/{userId}/unfollowProject/{projectId}", handler::unfollowProject)
                 .DELETE("/api/users/{userId}", handler::deleteUser)
+                .build();
+    }
+
+    @Bean
+    public RouterFunction<ServerResponse> videoRoutes(VideoHandler handler) {
+        return RouterFunctions.route()
+                .POST("/api/videos/upload", handler::uploadVideo)
+                .GET("/api/videos/{videoName}", handler::getVideoByName)
                 .build();
     }
 
