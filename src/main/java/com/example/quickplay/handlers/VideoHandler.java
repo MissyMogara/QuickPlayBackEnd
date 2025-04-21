@@ -89,4 +89,7 @@ public class VideoHandler {
                 .contentType(MediaType.APPLICATION_OCTET_STREAM)
                 .bodyValue(resource);
     }
+
+    //SACAR TODOS LOS VIDEOS
+    
 }
