@@ -98,6 +98,7 @@ public class RouterConfig implements WebFluxConfigurer {
     @Bean
     public RouterFunction<ServerResponse> videoRoutes(VideoHandler handler) {
         return RouterFunctions.route()
+                .GET("/api/videos", handler::getAllVideos)
                 .POST("/api/videos/upload", handler::uploadVideo)
                 .PUT("/api/videos/{videoName}/add/{postId}", handler::addVideoToPost)
                 .GET("/api/videos/{videoName}", handler::getVideoByName)
