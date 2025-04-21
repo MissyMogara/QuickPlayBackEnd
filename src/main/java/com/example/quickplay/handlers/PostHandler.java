@@ -150,8 +150,8 @@ public class PostHandler {
                         if(updatedPost.getContent() != null && !updatedPost.getContent().isEmpty()) {
                             update.set("content", updatedPost.getContent());
                         }
-                        if(updatedPost.getVideoUrls() != null && !updatedPost.getVideoUrls().isEmpty() && !updatedPost.getVideoUrls().isEmpty()) {
-                            update.set("videoUrls", updatedPost.getVideoUrls());
+                        if(updatedPost.getVideos() != null && !updatedPost.getVideos().isEmpty() && !updatedPost.getVideos().isEmpty()) {
+                            update.set("videoUrls", updatedPost.getVideos());
                         }
                         
                         return reactiveMongoTemplate.findAndModify(

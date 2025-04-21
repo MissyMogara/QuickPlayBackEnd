@@ -11,7 +11,7 @@ public class Post {
     private String id;
     private String title;
     private String content;
-    private List<String> videoUrls; // Lista de URLs de videos
+    private List<Video> videos; // Lista de URLs de videos
     private String userId; // ID del usuario que creó el post
     private Integer likes; // Número de "me gusta"
     private Integer views;
@@ -23,11 +23,11 @@ public class Post {
     }
 
     // Constructor con parámetros
-    public Post(String id, String title, String content, List<String> videoUrls, String userId, Integer likes, Integer views, List<String> comments, String createdAt) {
+    public Post(String id, String title, String content, List<Video> videos, String userId, Integer likes, Integer views, List<String> comments, String createdAt) {
         this.id = id;
         this.title = title;
         this.content = content;
-        this.videoUrls = videoUrls;
+        this.videos = videos;
         this.userId = userId;
         this.likes = likes;
         this.views = views;
@@ -60,12 +60,12 @@ public class Post {
         this.content = content;
     }
 
-    public List<String> getVideoUrls() {
-        return videoUrls;
+    public List<Video> getVideos() {
+        return videos;
     }
 
-    public void setVideoUrls(List<String> videoUrls) {
-        this.videoUrls = videoUrls;
+    public void setVideos(List<Video> videos) {
+        this.videos = videos;
     }
 
     public String getUserId() {
