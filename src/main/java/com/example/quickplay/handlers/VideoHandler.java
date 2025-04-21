@@ -2,6 +2,7 @@ package com.example.quickplay.handlers;
 
 import java.io.File;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.UUID;
 
 import org.springframework.core.io.FileSystemResource;
@@ -50,16 +51,16 @@ public class VideoHandler {
                     
                     return filePart.transferTo(videoFile)
                         .then(Mono.defer(() -> {
-                            System.out.println("💾 Creando entidad Video para guardar en MongoDB");
+                            System.out.println("Creando entidad Video para guardar en MongoDB");
                             Video video = new Video();
                             video.setName(randomFileName);
                             video.setUrl(fullPath);
                             video.setTitle(customTitle);
                             video.setCreatedAt(String.valueOf(System.currentTimeMillis()));
 
-                            System.out.println("📤 Guardando video en MongoDB...");
+                            System.out.println("Guardando video en MongoDB...");
                             return videoRepository.save(video)
-                                    .doOnSuccess(savedVideo -> System.out.println("✅ Guardado correctamente: " + savedVideo.getId()))
+                                    .doOnSuccess(savedVideo -> System.out.println("Guardado correctamente: " + savedVideo.getId()))
                                     .flatMap(savedVideo -> ServerResponse.status(HttpStatus.CREATED)
                                             .bodyValue("Video subido y guardado en la base de datos: " + savedVideo));
                         }));
@@ -100,7 +101,7 @@ public class VideoHandler {
     public Mono<ServerResponse> addVideoToPost(ServerRequest request) {
         String postId = request.pathVariable("postId");
         String videoName = request.pathVariable("videoName");
-    
+        
         // Validar los parámetros
         if (postId == null || videoName == null) {
             return ServerResponse.status(HttpStatus.BAD_REQUEST)
@@ -111,6 +112,12 @@ public class VideoHandler {
         return videoRepository.findByName(videoName)
                 .flatMap(video -> postRepository.findById(postId)
                         .flatMap(post -> {
+
+                            // Inicializar la lista si no existe
+                            if (post.getVideos() == null) {
+                                post.setVideos(new ArrayList<>());
+                            }
+
                             // Agregar el objeto Video al Post
                             post.getVideos().add(video);
                             return postRepository.save(post)
