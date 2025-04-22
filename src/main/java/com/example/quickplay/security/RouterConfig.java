@@ -119,7 +119,7 @@ public class RouterConfig implements WebFluxConfigurer {
         http
                 .securityMatcher(new PathPatternParserServerWebExchangeMatcher("/api/**"))
                 .authorizeExchange(exchanges -> exchanges
-                        .pathMatchers("/api/users/login", "/api/users/register", "/api/videos/{videoName}").permitAll()  // Rutas públicas para autenticación/registro
+                        .pathMatchers("/api/users/login", "/api/users/register", "/api/videos/{videoName}", "/api/videos").permitAll()  // Rutas públicas para autenticación/registro
                         .anyExchange().authenticated()
                 )
                 .addFilterBefore(jwtFilter, SecurityWebFiltersOrder.AUTHENTICATION)
