@@ -10,6 +10,7 @@ import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.security.web.server.util.matcher.PathPatternParserServerWebExchangeMatcher;
 import org.springframework.web.reactive.config.CorsRegistry;
+import org.springframework.web.reactive.config.ResourceHandlerRegistry;
 import org.springframework.web.reactive.config.WebFluxConfigurer;
 import org.springframework.web.reactive.function.server.RouterFunction;
 import org.springframework.web.reactive.function.server.RouterFunctions;
@@ -119,7 +120,7 @@ public class RouterConfig implements WebFluxConfigurer {
         http
                 .securityMatcher(new PathPatternParserServerWebExchangeMatcher("/api/**"))
                 .authorizeExchange(exchanges -> exchanges
-                        .pathMatchers("/api/users/login", "/api/users/register", "/api/videos/{videoName}", "/api/videos").permitAll()  // Rutas públicas para autenticación/registro
+                        .pathMatchers("/api/users/login", "/api/users/register", "/api/videos/{videoName}", "/api/videos", "/videos/**").permitAll()  // Rutas públicas para autenticación/registro
                         .anyExchange().authenticated()
                 )
                 .addFilterBefore(jwtFilter, SecurityWebFiltersOrder.AUTHENTICATION)
@@ -135,11 +136,21 @@ public class RouterConfig implements WebFluxConfigurer {
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/api/**")
-                .allowedOrigins("http://quickplay.com")   //Aquí ponemos el dominio desde el que aceptamos peticiones
+                .allowedOrigins("https://145d-31-221-187-207.ngrok-free.app")   //Aquí ponemos el dominio desde el que aceptamos peticiones
                 .allowedMethods("GET", "POST", "PUT", "DELETE")
                 .allowCredentials(true).maxAge(3600);
 
-        // Add more mappings...
+        registry.addMapping("/videos/**") // Habilitar acceso a la carpeta de videos
+                .allowedOrigins("https://145d-31-221-187-207.ngrok-free.app")
+                .allowedMethods("GET") // Solo GET, ya que normalmente no modificarás estos archivos
+                .maxAge(3600);
+    }
+
+     // Configuración de recursos estáticos (archivos de video)
+    @Override
+    public void addResourceHandlers(ResourceHandlerRegistry registry) {
+        registry.addResourceHandler("/videos/**")
+                .addResourceLocations("file:src/main/resources/videos/"); // Ruta física de los videos
     }
 
 

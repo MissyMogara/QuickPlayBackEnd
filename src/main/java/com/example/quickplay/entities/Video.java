@@ -1,4 +1,6 @@
 package com.example.quickplay.entities;
+import java.util.List;
+
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -18,17 +20,20 @@ public class Video {
     
     private String createdAt;
 
+    private List<String> segments;
+
     // Constructor sin argumentos
     public Video() {
     }
 
     // Constructor con argumentos
-    public Video(String id, String name, String url, String title, String createdAt) {
+    public Video(String id, String name, String url, String title, String createdAt, List<String> segments) {
         this.id = id;
         this.name = name;
         this.url = url;
         this.title = title;
         this.createdAt = createdAt;
+        this.segments = segments;
     }
 
     // Getters y Setters
@@ -70,6 +75,14 @@ public class Video {
 
     public void setCreatedAt(String createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public List<String> getSegments() {
+        return segments;
+    }
+
+    public void setSegments(List<String> segments) {
+        this.segments = segments;
     }
     
 }
